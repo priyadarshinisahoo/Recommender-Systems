@@ -79,6 +79,8 @@ def knn_func(user1, k):
             w.update({u2: float(msd_sim(user1,u2))})
     
     sorted_w = sorted(w.items(), key=lambda x:x[1], reverse=True)
+    if (len(sorted_w)<k):
+        k= len(sorted_w)
     sorted_w = sorted_w[:k]
     return sorted_w
 
@@ -87,7 +89,7 @@ def msd_sim(user1, user2):
     I= 0
     sqd_diff = 0.0
     for i in user_data[user1].keys():
-        if (user_data[user2].has_key(i)):
+        if ( i in user_data[user2].keys()):
             I= I+1
             sqd_diff = sqd_diff + float((user_data[user1][i] - user_data[user2][i])**2)
     if (sqd_diff == 0):
@@ -96,68 +98,63 @@ def msd_sim(user1, user2):
         msd = float(I/sqd_diff)
         return msd
 w ={}
-w.update(knn_func(21,7))
-print w
 
 #w = knn_func(21, 7)
 #print w
 
 import math    
-
 pred_items = []
-
 def recomm(user):
-    for i in user_data[user]:
+    for i in user_data[user].keys():
         pred = pred_ratings(user, i)
-        if ( pred >=4):
-          pred_items.append(i)  
+        if ( pred >= 3.8):
+          pred_items.append(i)
     return pred_items
+     
 
 def pred_ratings(user1, item):
     w1= {}
-    w1.update(knn_func(user1,7))
+    w1.update(knn_func(user1,12))
     mul=0
     div=0
-    
     for v in w1.keys():
-        if (user_data[v].has_key(item)):
-            print v
+        #print v
+        #print user_data[v].keys()
+        if (item in user_data[v].keys()):
+            #print v
+            #print user_data[v].keys()
             #print w1[v]
             #print user_data[v][item]
-            #mul = mul + (w1[v] * user_data[v][item])
-            #div = div + math.fabs(w1[v])
-    #if (div==0):
-     #   ratings=0
-    #else:
-     #   ratings = mul/div
-    #return ratings
+            mul = mul + (w1[v] * user_data[v][item])
+            div = div + math.fabs(w1[v])
+    if (div==0):
+        ratings=0
+    else:
+        ratings = mul/div
+    return ratings
 
-print pred_ratings(186,17)    
-
-'''
-def accuracy(user, item):
+def accuracy(user,item):
+    sums=0
     num_ratings = num_ratings_train
-    sum = 0
-    for r in user_data[user][item]:
-        sum = sum + math.fabs(pred_ratings(user,item)- r)
-    mae = sum/ num_ratings
-    return mae
+    for i in user_data[user].keys():
+        sums = sums + math.fabs(pred_ratings(user,i) - user_data[user][i])
+    mae = float(sums/ num_ratings)
+    accuracy = (1-mae)*100
+    return float(accuracy)
+
+#print pred_ratings(21,8)
+
+#print accuracy(21,17)
 
 def precision(user):
-    total_recomm = len(recomm(user))
     corr_items = 0
-    for i in recomm[user]:
-        if (user_data[user].has_key(i)):
-            corr_items = corr_items+1
-            
+    total_recomm = len(recomm(user))
+    for i in recomm(user):
+        if (user_data[user][i]>3.8):
+            corr_items= corr_items +1
     precision_u= corr_items/total_recomm
     return precision_u
 
-recomm(429)
-
-precision_users=0
-for user in user_data:
-    precision_users = precision_users + precision(user)
-
-precision_users= precision_users/train_data.user_id.unique().shape[0]
-'''
+print recomm(21) 
+print accuracy(21,17) 
+print precision(21)
