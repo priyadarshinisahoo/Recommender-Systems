@@ -133,7 +133,7 @@ def pred_ratings(user1, item):
         ratings = mul/div
     return ratings
 
-def accuracy(user,item):
+def accuracy(user):
     sums=0
     num_ratings = num_ratings_train
     for i in user_data[user].keys():
@@ -154,7 +154,7 @@ def precision(user):
             corr_items= corr_items +1
     precision_u= corr_items/total_recomm
     return precision_u
-
-print recomm(21) 
-print accuracy(21,17) 
-print precision(21)
+user = input("Enter the user id")
+print recomm(int(user))
+print accuracy(user) 
+print precision(user)
