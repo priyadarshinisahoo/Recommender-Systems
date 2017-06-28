@@ -13,11 +13,7 @@ from sklearn.model_selection import train_test_split
 r_cols = ['user_id','movie_id','rating','timestamp']
 ratings = pd.read_csv('D:\Python\ml-100k\u.data', sep ='\t', names= r_cols)
 
-#print ratings.head()
-
 ratings.drop(['timestamp'], 1, inplace= True)
-#print ratings.head()
-
 
 num_users = ratings.user_id.unique().shape[0]
 print "number of users: ",num_users
@@ -51,17 +47,7 @@ for row in test_data.itertuples():
 
 num_ratings_train = train_data.rating.shape[0]
 num_ratings_test = test_data.rating.shape[0]
-#user_data = defaultdict(list)
-#add = defaultdict(list)
-#print type(train_data)
 
-
-
-'''
-u1 = train_data.set_index('user_id', drop=True).to_dict(orient='index')
-user_data= u1.set_index(['movie_id', 'rating'], drop=False ).to_dict(orient='list')
-print u1
-'''
 '''
 with open(train_data) as f1:
     one = f1.read()
@@ -73,14 +59,7 @@ with open(train_data) as f1:
 
 '''
 
-#print user_data
-
-'''
-for key in user_data:
-    while (key == (train_data.user_id)):
-        user_data[key].update({train_data.movie_id: train_data.rating})
-        
-'''
+#computing average
 def r_average(user):
     sums=0
     for item in user_data[user].keys():
@@ -91,7 +70,7 @@ def r_average(user):
 
 
 #k-neighbors
-#in the form (usr2:msd)
+#in the form {(usr2:msd)}
 def knn_func(user1, k):
     w = {}
     for u2 in user_data.keys():
@@ -107,7 +86,7 @@ def knn_func(user1, k):
     return sorted_w
 
 #computing similarity
-#msd = |I[u][v]|/summation((r[u][i]- r[v][i])**2)
+#pc = (summation(rui-r_u_avg)(rvi-r_v_avg))/((summation(rui-r_u_avg)sq)(summation(rvi-r_v_avg)sq))
 def pc_sim(user1, user2):
     top=0
     bottom1=0
@@ -128,10 +107,7 @@ def pc_sim(user1, user2):
 
 w ={}
 
-#w = knn_func(21, 7)
-#print w
 #item is predicted if predicted rating of the item is greater than 3.8
-   
 pred_items = []
 
 def recomm(user):
@@ -151,17 +127,11 @@ def recomm(user):
 #pred_ratings = summation(w[u][v] * r[v][i])/summation(|w[u][v]|)
 def pred_ratings(user1, item):
     w1= {}
-    w1.update(knn_func(user1,12))
+    w1.update(knn_func(user1,100))
     mul=0
     div=0
     for v in w1.keys():
-        #print v
-        #print user_data[v].keys()
         if (item in user_data[v].keys()):
-            #print v
-            #print user_data[v].keys()
-            #print w1[v]
-            #print user_data[v][item]
             mul = mul + (w1[v] * user_data[v][item])
             div = div + math.fabs(w1[v])
     if (div==0):
@@ -171,42 +141,32 @@ def pred_ratings(user1, item):
     return ratings
 
 #mae = summation(|predicted_ratings - actual_ratings|)
-#accuracy = 1-mae
 def mean_absolute_error(user):
     sums=0
-    num_ratings = num_ratings_train
+    num_ratings = num_ratings_test
     for i in user_data_test[user].keys():
         sums = sums + math.fabs(pred_ratings(user,i) - user_data_test[user][i])
     mae = float(sums/ num_ratings)
     return mae
 
-#print pred_ratings(21,8)
-
-#print accuracy(21,17)
-
 #precision = total correctly predicted items/ total recommended items
 def precision(user, recommend):
-    corr_items = 0
-    total_recomm = len(recommend)
-    for i in user_data_test[user].keys():
-        if (i in recommend and user_data_test[user][i]>3.8):
-            corr_items= corr_items +1
-    precision_u= float(corr_items/total_recomm)
-    return precision_u
+    tp=0.0
+    fp=0.0
+    fn=0.0
+    for i in ratings.movie_id.unique():
+        if (i in recommend and user_data_test[user]>3.8):
+            tp=tp+1
+        elif(i in recommend and user_data_test[user]<3.8):
+            fp=fp+1
+        elif(i not in recommend and user_data_test[user]>3.8):
+            fn=fn+1
+    precision = tp/(tp+fp)
+    recall = tp/(tp+fn)
+    return precision,recall
 
 user = input("Enter the user id")
 recommend = recomm(int(user))
 print "recommendations: ", recommend
 print "mean absolute error: ", mean_absolute_error(int(user))
-print "precision: ",precision(int(user), recommend)
-
-
-
-"""
-
-for row in test_data.itertuples():
-    user = row[1]
-    print "for the user_id, " + str(user) + " recommended item_ids are:"
-    print recomm(user)
-    
-"""
+print "precision and recall:",precision(int(user), recommend)
