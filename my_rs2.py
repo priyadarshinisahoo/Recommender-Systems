@@ -128,7 +128,7 @@ def recomm(user):
 #pred_ratings = summation(w[u][v] * r[v][i])/summation(|w[u][v]|)
 def pred_ratings(user1, item):
     w1= {}
-    w1.update(knn_func(user1,item,1000))
+    w1.update(knn_func(user1,item,50))
     mul=0
     div=0
     for v in w1.keys():
