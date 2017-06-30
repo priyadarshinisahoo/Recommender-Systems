@@ -91,11 +91,11 @@ def knn_func(user1,item,k):
     return sorted_w
 
 #computing similarity
-#pc = (summation(rui-r_u_avg)(rvi-r_v_avg))/((summation(rui-r_u_avg)sq)(summation(rvi-r_v_avg)sq))
+#pc = (summation(rui-r_u_avg)(rvi-r_v_avg))/sqrt((summation(rui-r_u_avg)sq)(summation(rvi-r_v_avg)sq))
 def pc_sim(user1, user2):
-    top=0
-    bottom1=0
-    bottom2=0
+    top=0.0
+    bottom1=0.0
+    bottom2=0.0
     r_u_avg= r_average(user1)
     r_v_avg= r_average(user2)
     for i in user_data[user1].keys():
@@ -128,20 +128,20 @@ def recomm(user):
 #pred_ratings = summation(w[u][v] * r[v][i])/summation(|w[u][v]|)
 def pred_ratings(user1, item):
     w1= {}
-    w1.update(knn_func(user1,item,1000))
+    w1.update(knn_func(user1,item,200))
     mul=0
     div=0
     for v in w1.keys():
         if (item in user_data[v].keys()):
-            mul = mul + (w1[v] * user_data[v][item])
+            mul = mul + (w1[v] * (user_data[v][item]- r_average(v)))
             div = div + math.fabs(w1[v])
     if (div==0):
         ratings=0
     else:
-        ratings = mul/div
+        ratings =r_average(user1)+ mul/div
     return ratings
 
-#mae = summation(|predicted_ratings - actual_ratings|)/ no.of ratings by user on item i
+#mae = summation(|predicted_ratings - actual_ratings|)/ R_test
 def mean_absolute_error(user):
     sums=0
     sq=0
