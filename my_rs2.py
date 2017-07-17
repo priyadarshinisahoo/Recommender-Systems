@@ -6,7 +6,6 @@ Created on Mon Jun 19 10:56:33 2017
 """
 
 import pandas as pd
-import numpy as np
 import math
 from sklearn.model_selection import train_test_split
 
@@ -75,7 +74,7 @@ def r_average(user):
 
 
 #k-neighbors
-#in the form {(usr2:msd)}
+#in the form {(usr2:pc)}
 def knn_func(user1,item,k):
     w = {}
     for u2 in user_data.keys():
@@ -107,10 +106,9 @@ def pc_sim(user1, user2):
     if (div != 0):
         pc= float(top/div)
     else:
-        pc = 1
+        pc = 0
     return pc
 
-w ={}
 
 #item is predicted if predicted rating of the item is greater than 3.8
 
@@ -125,7 +123,7 @@ def recomm(user):
         pred_items.append(k[0]) 
     return pred_items
 
-#pred_ratings = summation(w[u][v] * r[v][i])/summation(|w[u][v]|)
+#pred_ratings =r_u_avg + summation(w[u][v] * (r[v][i]-r_v_avg))/summation(|w[u][v]|)
 def pred_ratings(user1, item):
     w1= {}
     w1.update(knn_func(user1,item,50))
@@ -191,7 +189,7 @@ for x in user_data_test.keys():
     if(n>=100):
         break;
         
-print "precision: ", sum(prec)/n
-print "recall: ", sum(rec)/n
-print "mean absolute error: ", sum(mae)/n
-print "rmse: ", sum(rmse)/n
+print "precision: ", sum(prec)/(n-1)
+print "recall: ", sum(rec)/(n-1)
+print "mean absolute error: ", sum(mae)/(n-1)
+print "rmse: ", sum(rmse)/(n-1)
